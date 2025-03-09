@@ -7,7 +7,7 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <MovieCard 
         title="Inception"
-        posterUrl="https://image.tmdb.org/t/p/w500/qmDpIHrmpJINaRKAfWQfftjCdyi.jpg"
+        posterUrl="https://image.tmdb.org/t/p/w600_and_h900_bestv2/bmK3XsNFgAv1RfEV681KLLIKbbV.jpg"
       />
     </View>
   );
