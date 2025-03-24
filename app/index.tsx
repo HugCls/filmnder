@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
-import SwipeableMovieCard from "../components/SwipeableMovieCard";
-import { getTrendingMovies } from "../services/movieService";
+import SwipeableMovieCard from "@/components/SwipeableMovieCard";
+import { getTrendingMovies } from "@/services/movieService";
 
 interface Movie {
   id: number;
@@ -43,14 +43,18 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {movies[currentIndex] && (
-        <SwipeableMovieCard
-          title={movies[currentIndex].title}
-          posterUrl={`https://image.tmdb.org/t/p/w500${movies[currentIndex].poster_path}`}
-          onSwipeRight={handleSwipeRight}
-          onSwipeLeft={handleSwipeLeft}
-        />
-      )}
+      {movies
+        .slice(currentIndex)
+        .reverse() // pour que la carte actuelle soit au-dessus
+        .map((movie) => (
+          <SwipeableMovieCard
+            key={movie.id}
+            title={movie.title}
+            posterUrl={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+            onSwipeRight={handleSwipeRight}
+            onSwipeLeft={handleSwipeLeft}
+          />
+        ))}
     </View>
   );
 }
@@ -58,14 +62,12 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f8f8f8",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
-
