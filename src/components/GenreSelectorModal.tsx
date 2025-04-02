@@ -17,20 +17,14 @@ interface GenreSelectorModalProps {
   visible: boolean;
   onClose: () => void;
   onConfirm: (selectedGenres: number[]) => void;
+  genres: Genre[]; // ✅ Liste dynamique injectée par le parent
 }
-
-const STATIC_GENRES: Genre[] = [
-  { id: 28, name: "Action" },
-  { id: 35, name: "Comedy" },
-  { id: 18, name: "Drama" },
-  { id: 27, name: "Horror" },
-  { id: 10749, name: "Romance" },
-];
 
 const GenreSelectorModal: React.FC<GenreSelectorModalProps> = ({
   visible,
   onClose,
   onConfirm,
+  genres,
 }) => {
   const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
 
@@ -48,7 +42,7 @@ const GenreSelectorModal: React.FC<GenreSelectorModalProps> = ({
         <View style={styles.container}>
           <Text style={styles.title}>Choose your favorite genres</Text>
           <ScrollView style={styles.genreList}>
-            {STATIC_GENRES.map((genre) => (
+            {genres.map((genre) => (
               <TouchableOpacity
                 key={genre.id}
                 style={[

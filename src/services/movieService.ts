@@ -20,3 +20,17 @@ export async function getTrendingMovies(page = 1, genres: number[] = []) {
     return [];
   }
 }
+
+export async function getGenres(): Promise<{ id: number; name: string }[]> {
+    try {
+      const response = await fetch(
+        `${BASE_URL}/genre/movie/list?api_key=${API_KEY}&language=en-US`
+      );
+      const data = await response.json();
+      return data.genres;
+    } catch (error) {
+      console.error("Error while fetching genres:", error);
+      return [];
+    }
+  }
+  

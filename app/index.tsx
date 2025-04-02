@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
 import SwipeableMovieCard from "@/components/SwipeableMovieCard";
-import { getTrendingMovies } from "@/services/movieService";
+import GenreSelectorModal from "@/components/GenreSelectorModal";
+import { getTrendingMovies, getGenres } from "@/services/movieService";
 
 interface Movie {
   id: number;
   title: string;
   poster_path: string;
+}
+
+interface Genre {
+  id: number;
+  name: string;
 }
 
 export default function HomeScreen() {
@@ -16,21 +22,38 @@ export default function HomeScreen() {
   const [page, setPage] = useState(1);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
-  // Initial fetch
+  const [showGenreModal, setShowGenreModal] = useState(true);
+  const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
+  const [availableGenres, setAvailableGenres] = useState<Genre[]>([]); // 🆕 genres dynamiques
+
+  // 🧠 Charger la liste des genres au démarrage
   useEffect(() => {
-    async function fetchInitialMovies() {
-      const initialMovies = await getTrendingMovies();
-      setMovies(initialMovies);
-      setLoading(false);
+    async function fetchGenres() {
+      const genres = await getGenres();
+      setAvailableGenres(genres);
     }
-    fetchInitialMovies();
+    fetchGenres();
   }, []);
 
-  // Load next page when user reaches end
+  // 🎯 Charger les films quand les genres sont choisis
+  useEffect(() => {
+    if (selectedGenres.length > 0) {
+      async function fetchInitialMovies() {
+        const initialMovies = await getTrendingMovies(1, selectedGenres);
+        setMovies(initialMovies);
+        setCurrentIndex(0);
+        setPage(1);
+        setLoading(false);
+      }
+      fetchInitialMovies();
+    }
+  }, [selectedGenres]);
+
+  // 🔄 Charger la page suivante si on approche de la fin
   useEffect(() => {
     if (currentIndex >= movies.length - 2 && !isFetchingMore) {
       setIsFetchingMore(true);
-      getTrendingMovies(page + 1).then((newMovies) => {
+      getTrendingMovies(page + 1, selectedGenres).then((newMovies) => {
         setMovies((prevMovies) => [...prevMovies, ...newMovies]);
         setPage((prevPage) => prevPage + 1);
         setIsFetchingMore(false);
@@ -52,6 +75,16 @@ export default function HomeScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#E50914" />
+        {/* Affiche aussi la modal pendant le chargement */}
+        <GenreSelectorModal
+          visible={showGenreModal}
+          onClose={() => setShowGenreModal(false)}
+          onConfirm={(genres) => {
+            setSelectedGenres(genres);
+            setShowGenreModal(false);
+          }}
+          genres={availableGenres}
+        />
       </View>
     );
   }
@@ -71,9 +104,20 @@ export default function HomeScreen() {
             index={i}
           />
         ))}
+
       {isFetchingMore && (
         <ActivityIndicator size="small" color="#E50914" style={styles.loader} />
       )}
+
+      <GenreSelectorModal
+        visible={showGenreModal}
+        onClose={() => setShowGenreModal(false)}
+        onConfirm={(genres) => {
+          setSelectedGenres(genres);
+          setShowGenreModal(false);
+        }}
+        genres={availableGenres}
+      />
     </View>
   );
 }
@@ -95,4 +139,3 @@ const styles = StyleSheet.create({
     bottom: 20,
   },
 });
-
