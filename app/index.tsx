@@ -13,23 +13,38 @@ export default function HomeScreen() {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [page, setPage] = useState(1);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
 
+  // Initial fetch
   useEffect(() => {
-    async function fetchMovies() {
-      const moviesData = await getTrendingMovies();
-      setMovies(moviesData);
+    async function fetchInitialMovies() {
+      const initialMovies = await getTrendingMovies();
+      setMovies(initialMovies);
       setLoading(false);
     }
-    fetchMovies();
+    fetchInitialMovies();
   }, []);
 
+  // Load next page when user reaches end
+  useEffect(() => {
+    if (currentIndex >= movies.length - 2 && !isFetchingMore) {
+      setIsFetchingMore(true);
+      getTrendingMovies(page + 1).then((newMovies) => {
+        setMovies((prevMovies) => [...prevMovies, ...newMovies]);
+        setPage((prevPage) => prevPage + 1);
+        setIsFetchingMore(false);
+      });
+    }
+  }, [currentIndex]);
+
   const handleSwipeRight = () => {
-    console.log("Film liké :", movies[currentIndex].title);
+    console.log("Liked movie:", movies[currentIndex]?.title);
     setCurrentIndex((prev) => prev + 1);
   };
 
   const handleSwipeLeft = () => {
-    console.log("Film ignoré :", movies[currentIndex].title);
+    console.log("Ignored movie:", movies[currentIndex]?.title);
     setCurrentIndex((prev) => prev + 1);
   };
 
@@ -45,7 +60,7 @@ export default function HomeScreen() {
     <View style={styles.container}>
       {movies
         .slice(currentIndex)
-        .reverse() // pour que la carte actuelle soit au-dessus
+        .reverse()
         .map((movie, i) => (
           <SwipeableMovieCard
             key={movie.id}
@@ -56,6 +71,9 @@ export default function HomeScreen() {
             index={i}
           />
         ))}
+      {isFetchingMore && (
+        <ActivityIndicator size="small" color="#E50914" style={styles.loader} />
+      )}
     </View>
   );
 }
@@ -63,13 +81,18 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
   },
   loadingContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  loader: {
+    position: "absolute",
+    bottom: 20,
   },
 });
+
