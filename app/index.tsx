@@ -46,13 +46,14 @@ export default function HomeScreen() {
       {movies
         .slice(currentIndex)
         .reverse() // pour que la carte actuelle soit au-dessus
-        .map((movie) => (
+        .map((movie, i) => (
           <SwipeableMovieCard
             key={movie.id}
             title={movie.title}
             posterUrl={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
             onSwipeRight={handleSwipeRight}
             onSwipeLeft={handleSwipeLeft}
+            index={i}
           />
         ))}
     </View>
@@ -64,6 +65,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative',
   },
   loadingContainer: {
     flex: 1,

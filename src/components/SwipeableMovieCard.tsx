@@ -17,9 +17,10 @@ interface MovieCardProps {
   posterUrl: string;
   onSwipeRight: () => void;
   onSwipeLeft: () => void;
+  index: number;
 }
 
-const SwipeableMovieCard: React.FC<MovieCardProps> = ({ title, posterUrl, onSwipeRight, onSwipeLeft }) => {
+const SwipeableMovieCard: React.FC<MovieCardProps> = ({ title, posterUrl, onSwipeRight, onSwipeLeft, index }) => {
   const translateX = useSharedValue(0);
   const rotate = useSharedValue(0);
 
@@ -51,7 +52,7 @@ const SwipeableMovieCard: React.FC<MovieCardProps> = ({ title, posterUrl, onSwip
 
   return (
     <PanGestureHandler onGestureEvent={gestureHandler}>
-      <Animated.View style={[styles.card, animatedStyle]}>
+      <Animated.View style={[styles.card, animatedStyle, { zIndex: index }]}>
         <Image source={{ uri: posterUrl }} style={styles.poster} />
         <Text style={styles.title}>{title}</Text>
       </Animated.View>
@@ -61,6 +62,7 @@ const SwipeableMovieCard: React.FC<MovieCardProps> = ({ title, posterUrl, onSwip
 
 const styles = StyleSheet.create({
   card: {
+    position: "absolute",
     width: SCREEN_WIDTH * 0.9,
     height: 500,
     backgroundColor: "white",
