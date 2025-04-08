@@ -1,6 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { getLikedMovies, clearLikedMovies } from "@/storage/likes";
+import { getMatchingMovies } from "@/matching/compare";
+import { otherUserLikes } from "@/mock/otherUser";
 
 interface DebugPanelProps {
   visible?: boolean; // allows disabling in production easily
@@ -30,6 +32,16 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ visible = true }) => {
       >
         <Text style={styles.text}>Clear liked movies</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+  onPress={async () => {
+    const userLikes = await getLikedMovies();
+    const matches = getMatchingMovies(userLikes, otherUserLikes);
+    console.log("💘 Matching movies:", matches);
+  }}
+  style={[styles.button, { backgroundColor: "#4CAF50" }]}
+>
+  <Text style={styles.text}>Show Matches</Text>
+</TouchableOpacity>
     </View>
   );
 };
@@ -54,3 +66,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+
