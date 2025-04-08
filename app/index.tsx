@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, ActivityIndicator } from "react-native";
+import { View, StyleSheet, ActivityIndicator, TouchableOpacity, Text } from "react-native";
 import SwipeableMovieCard from "@/components/SwipeableMovieCard";
 import GenreSelectorModal from "@/components/GenreSelectorModal";
+import DebugPanel from "@/components/DebugPanel"; // Optional: for dev only
+
 import { getTrendingMovies, getGenres } from "@/services/movieService";
+import { addLikedMovie } from "@/storage/likes";
 
 interface Movie {
   id: number;
@@ -24,9 +27,9 @@ export default function HomeScreen() {
 
   const [showGenreModal, setShowGenreModal] = useState(true);
   const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
-  const [availableGenres, setAvailableGenres] = useState<Genre[]>([]); // 🆕 genres dynamiques
+  const [availableGenres, setAvailableGenres] = useState<Genre[]>([]);
 
-  // 🧠 Charger la liste des genres au démarrage
+  // 🔁 Load genre list at startup
   useEffect(() => {
     async function fetchGenres() {
       const genres = await getGenres();
@@ -35,7 +38,7 @@ export default function HomeScreen() {
     fetchGenres();
   }, []);
 
-  // 🎯 Charger les films quand les genres sont choisis
+  // 🎯 Load movies when genres are selected
   useEffect(() => {
     if (selectedGenres.length > 0) {
       async function fetchInitialMovies() {
@@ -49,7 +52,7 @@ export default function HomeScreen() {
     }
   }, [selectedGenres]);
 
-  // 🔄 Charger la page suivante si on approche de la fin
+  // ➕ Fetch next page when reaching the end of the current list
   useEffect(() => {
     if (currentIndex >= movies.length - 2 && !isFetchingMore) {
       setIsFetchingMore(true);
@@ -61,21 +64,29 @@ export default function HomeScreen() {
     }
   }, [currentIndex]);
 
-  const handleSwipeRight = () => {
-    console.log("Liked movie:", movies[currentIndex]?.title);
+  // 👉 Handle right swipe: like a movie and store it
+  const handleSwipeRight = async () => {
+    const likedMovie = movies[currentIndex];
+    console.log("Liked movie:", likedMovie?.title);
+
+    if (likedMovie?.id) {
+      await addLikedMovie(likedMovie.id);
+    }
+
     setCurrentIndex((prev) => prev + 1);
   };
 
+  // 👈 Handle left swipe: ignore movie
   const handleSwipeLeft = () => {
     console.log("Ignored movie:", movies[currentIndex]?.title);
     setCurrentIndex((prev) => prev + 1);
   };
 
+  // Show loading spinner and genre modal
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#E50914" />
-        {/* Affiche aussi la modal pendant le chargement */}
         <GenreSelectorModal
           visible={showGenreModal}
           onClose={() => setShowGenreModal(false)}
@@ -91,6 +102,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Display stacked movie cards */}
       {movies
         .slice(currentIndex)
         .reverse()
@@ -109,6 +121,7 @@ export default function HomeScreen() {
         <ActivityIndicator size="small" color="#E50914" style={styles.loader} />
       )}
 
+      {/* Genre selection modal */}
       <GenreSelectorModal
         visible={showGenreModal}
         onClose={() => setShowGenreModal(false)}
@@ -118,6 +131,9 @@ export default function HomeScreen() {
         }}
         genres={availableGenres}
       />
+
+      {/* 🔍 Optional dev tool */}
+      <DebugPanel visible={__DEV__} />
     </View>
   );
 }
