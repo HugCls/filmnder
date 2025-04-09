@@ -1,4 +1,5 @@
 import React from "react";
+import { useRouter } from "expo-router";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { getLikedMovies, clearLikedMovies } from "@/storage/likes";
 import { getMatchingMovies } from "@/matching/compare";
@@ -10,9 +11,18 @@ interface DebugPanelProps {
 
 const DebugPanel: React.FC<DebugPanelProps> = ({ visible = true }) => {
   if (!visible) return null;
+  const router = useRouter();
+
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+  onPress={() => router.push("/matches")}
+  style={[styles.button, { backgroundColor: "#673AB7" }]}
+>
+  <Text style={styles.text}>Go to MatchesScreen</Text>
+</TouchableOpacity>
+
       <TouchableOpacity
         style={styles.button}
         onPress={async () => {
@@ -33,15 +43,15 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ visible = true }) => {
         <Text style={styles.text}>Clear liked movies</Text>
       </TouchableOpacity>
       <TouchableOpacity
-  onPress={async () => {
-    const userLikes = await getLikedMovies();
-    const matches = getMatchingMovies(userLikes, otherUserLikes);
-    console.log("💘 Matching movies:", matches);
-  }}
-  style={[styles.button, { backgroundColor: "#4CAF50" }]}
->
-  <Text style={styles.text}>Show Matches</Text>
-</TouchableOpacity>
+        onPress={async () => {
+          const userLikes = await getLikedMovies();
+          const matches = getMatchingMovies(userLikes, otherUserLikes);
+          console.log("💘 Matching movies:", matches);
+        }}
+        style={[styles.button, { backgroundColor: "#4CAF50" }]}
+      >
+        <Text style={styles.text}>Show Matches</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -66,4 +76,3 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
-
