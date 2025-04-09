@@ -1,18 +1,35 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import { View, Text, StyleSheet, FlatList, Image } from "react-native";
 import { getLikedMovies } from "@/storage/likes";
 import { getMatchingMovies } from "@/matching/compare";
 import { otherUserLikes } from "@/mock/otherUser";
+import { getMovieDetails } from "@/services/movieService";
+
+interface Movie {
+  id: number;
+  title: string;
+  poster_path: string;
+}
 
 export default function MatchesScreen() {
-  const [matchingMovieIds, setMatchingMovieIds] = useState<number[]>([]);
+  const [matchingMovies, setMatchingMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadMatches() {
       const userLikes = await getLikedMovies();
       const matches = getMatchingMovies(userLikes, otherUserLikes);
-      setMatchingMovieIds(matches);
+
+      const detailedMatches: Movie[] = [];
+
+      for (const id of matches) {
+        const movie = await getMovieDetails(id);
+        if (movie) {
+          detailedMatches.push(movie);
+        }
+      }
+
+      setMatchingMovies(detailedMatches);
       setLoading(false);
     }
 
@@ -27,7 +44,7 @@ export default function MatchesScreen() {
     );
   }
 
-  if (matchingMovieIds.length === 0) {
+  if (matchingMovies.length === 0) {
     return (
       <View style={styles.center}>
         <Text>No matches yet 💔</Text>
@@ -39,12 +56,15 @@ export default function MatchesScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>🎯 Movies you both liked:</Text>
       <FlatList
-        data={matchingMovieIds}
-        keyExtractor={(id) => id.toString()}
+        data={matchingMovies}
+        keyExtractor={(movie) => movie.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.card}>
-            <Text style={styles.movieId}>Movie ID: {item}</Text>
-            {/* Later: fetch movie title/poster */}
+            <Image
+              source={{ uri: `https://image.tmdb.org/t/p/w500${item.poster_path}` }}
+              style={styles.poster}
+            />
+            <Text style={styles.movieTitle}>{item.title}</Text>
             <Text style={styles.matchLabel}>💘 You both liked this!</Text>
           </View>
         )}
@@ -58,6 +78,8 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 60,
     paddingHorizontal: 20,
+    backgroundColor: "#3A3A3C" // Gris équilibré, parfait pour la lisibilité
+
   },
   center: {
     flex: 1,
@@ -68,21 +90,30 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 20,
+    textAlign: "center",
   },
   card: {
     backgroundColor: "#f8f8f8",
     padding: 16,
     borderRadius: 12,
-    marginBottom: 12,
-    elevation: 2,
+    marginBottom: 16,
+    elevation: 3,
+    alignItems: "center",
   },
-  movieId: {
-    fontSize: 16,
+  poster: {
+    width: 200,
+    height: 300,
+    borderRadius: 10,
+    marginBottom: 12,
+  },
+  movieTitle: {
+    fontSize: 18,
     fontWeight: "600",
+    textAlign: "center",
   },
   matchLabel: {
     color: "#E50914",
     fontWeight: "bold",
-    marginTop: 8,
+    marginTop: 6,
   },
 });

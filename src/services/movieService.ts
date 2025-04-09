@@ -9,7 +9,8 @@ const BASE_URL = "https://api.themoviedb.org/3";
  */
 export async function getTrendingMovies(page = 1, genres: number[] = []) {
   try {
-    const genreParam = genres.length > 0 ? `&with_genres=${genres.join(',')}` : '';
+    const genreParam =
+      genres.length > 0 ? `&with_genres=${genres.join(",")}` : "";
     const response = await fetch(
       `${BASE_URL}/discover/movie?api_key=${API_KEY}&sort_by=popularity.desc&page=${page}${genreParam}`
     );
@@ -22,15 +23,30 @@ export async function getTrendingMovies(page = 1, genres: number[] = []) {
 }
 
 export async function getGenres(): Promise<{ id: number; name: string }[]> {
-    try {
-      const response = await fetch(
-        `${BASE_URL}/genre/movie/list?api_key=${API_KEY}&language=en-US`
-      );
-      const data = await response.json();
-      return data.genres;
-    } catch (error) {
-      console.error("Error while fetching genres:", error);
-      return [];
-    }
+  try {
+    const response = await fetch(
+      `${BASE_URL}/genre/movie/list?api_key=${API_KEY}&language=en-US`
+    );
+    const data = await response.json();
+    return data.genres;
+  } catch (error) {
+    console.error("Error while fetching genres:", error);
+    return [];
   }
-  
+}
+
+export async function getMovieDetails(movieId: number) {
+  try {
+    const response = await fetch(
+      `${BASE_URL}/movie/${movieId}?api_key=${API_KEY}&language=en-US`
+    );
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(
+      `Error while fetching movie details for ID ${movieId}:`,
+      error
+    );
+    return null;
+  }
+}
