@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, ActivityIndicator, TouchableOpacity, Text } from "react-native";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import SwipeableMovieCard from "@/components/SwipeableMovieCard";
 import GenreSelectorModal from "@/components/GenreSelectorModal";
 import DebugPanel from "@/components/DebugPanel"; // Optional: for dev only
-
+import UserSelectorModal from "@/components/UserSelectorModal";
 import { getTrendingMovies, getGenres } from "@/services/movieService";
 import { addLikedMovie } from "@/storage/likes";
 
@@ -25,9 +25,14 @@ export default function HomeScreen() {
   const [page, setPage] = useState(1);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
 
+  // State for genre selection
   const [showGenreModal, setShowGenreModal] = useState(true);
   const [selectedGenres, setSelectedGenres] = useState<number[]>([]);
   const [availableGenres, setAvailableGenres] = useState<Genre[]>([]);
+
+  // State for user selection; if null, ask the user to select their username.
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [userModalVisible, setUserModalVisible] = useState(false);
 
   // 🔁 Load genre list at startup
   useEffect(() => {
@@ -38,9 +43,21 @@ export default function HomeScreen() {
     fetchGenres();
   }, []);
 
-  // 🎯 Load movies when genres are selected
+  // 🔁 Check if a user is already set; otherwise, open the user selection modal.
   useEffect(() => {
-    if (selectedGenres.length > 0) {
+    async function checkUser() {
+      // Here, you might fetch the current user from AsyncStorage.
+      // For simplicity, we suppose currentUser is null if not yet set.
+      if (!currentUser) {
+        setUserModalVisible(true);
+      }
+    }
+    checkUser();
+  }, [currentUser]);
+
+  // 🎯 Load movies when genres are selected and a user is set
+  useEffect(() => {
+    if (selectedGenres.length > 0 && currentUser) {
       async function fetchInitialMovies() {
         const initialMovies = await getTrendingMovies(1, selectedGenres);
         setMovies(initialMovies);
@@ -50,7 +67,7 @@ export default function HomeScreen() {
       }
       fetchInitialMovies();
     }
-  }, [selectedGenres]);
+  }, [selectedGenres, currentUser]);
 
   // ➕ Fetch next page when reaching the end of the current list
   useEffect(() => {
@@ -82,11 +99,11 @@ export default function HomeScreen() {
     setCurrentIndex((prev) => prev + 1);
   };
 
-  // Show loading spinner and genre modal
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#E50914" />
+        {/* Show Genre Modal during loading */}
         <GenreSelectorModal
           visible={showGenreModal}
           onClose={() => setShowGenreModal(false)}
@@ -95,6 +112,15 @@ export default function HomeScreen() {
             setShowGenreModal(false);
           }}
           genres={availableGenres}
+        />
+        {/* Show User Selector Modal if user is not defined */}
+        <UserSelectorModal
+          visible={userModalVisible}
+          onClose={() => setUserModalVisible(false)}
+          onConfirm={(username) => {
+            setCurrentUser(username);
+            setUserModalVisible(false);
+          }}
         />
       </View>
     );
@@ -116,7 +142,6 @@ export default function HomeScreen() {
             index={i}
           />
         ))}
-
       {isFetchingMore && (
         <ActivityIndicator size="small" color="#E50914" style={styles.loader} />
       )}
@@ -132,7 +157,17 @@ export default function HomeScreen() {
         genres={availableGenres}
       />
 
-      {/* 🔍 Optional dev tool */}
+      {/* User selection modal */}
+      <UserSelectorModal
+        visible={userModalVisible}
+        onClose={() => setUserModalVisible(false)}
+        onConfirm={(username) => {
+          setCurrentUser(username);
+          setUserModalVisible(false);
+        }}
+      />
+
+      {/* Optional dev tool */}
       <DebugPanel visible={__DEV__} />
     </View>
   );
@@ -144,6 +179,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
+    backgroundColor: "#2C2C2E", // Using a stylish dark gray background
   },
   loadingContainer: {
     flex: 1,
