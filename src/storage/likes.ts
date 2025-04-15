@@ -1,46 +1,62 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const STORAGE_KEY = "LIKED_MOVIES";
+export function getLikesKey(username: string): string {
+  return `LIKED_MOVIES_${username}`;
+}
 
 /**
- * Add a liked movie ID to local storage (if not already present)
- * @param movieId - The ID of the liked movie
+ * Add a liked movie ID for the given user, preventing duplicates.
+ * @param movieId - The movie ID to add.
+ * @param username - The username of the current user.
  */
-export async function addLikedMovie(movieId: number): Promise<void> {
+export async function addLikedMovie(movieId: number, username: string): Promise<void> {
   try {
-    const existing = await AsyncStorage.getItem(STORAGE_KEY);
+    const key = getLikesKey(username);
+    console.log("Storing movie ID:", movieId, "with key:", key);
+    const existing = await AsyncStorage.getItem(key);
     const likedMovies: number[] = existing ? JSON.parse(existing) : [];
-
+    console.log("Existing liked movies:", likedMovies);
+    
     if (!likedMovies.includes(movieId)) {
       const updated = [...likedMovies, movieId];
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      console.log("Updated liked movies:", updated);
+      await AsyncStorage.setItem(key, JSON.stringify(updated));
+      console.log("Successfully stored the updated liked movies.");
+    } else {
+      console.log("Movie ID already exists in liked movies.");
     }
   } catch (error) {
-    console.error("❌ Error while adding liked movie:", error);
+    console.error("Error while adding liked movie:", error);
   }
 }
 
 /**
- * Retrieve the list of liked movie IDs from local storage
- * @returns An array of liked movie IDs
+ * Retrieve the list of liked movie IDs for the given user.
+ * @param username - The username of the current user.
+ * @returns An array of movie IDs.
  */
-export async function getLikedMovies(): Promise<number[]> {
+export async function getLikedMovies(username: string): Promise<number[]> {
   try {
-    const data = await AsyncStorage.getItem(STORAGE_KEY);
+    const key = getLikesKey(username);
+    const data = await AsyncStorage.getItem(key);
+    console.log("Retrieving liked movies from key:", key, "data:", data);
     return data ? JSON.parse(data) : [];
   } catch (error) {
-    console.error("❌ Error while reading liked movies:", error);
+    console.error("Error while reading liked movies:", error);
     return [];
   }
 }
 
 /**
- * Clear the entire list of liked movies (for development/testing)
+ * Clear the liked movies for the given user (useful for testing).
+ * @param username - The username of the current user.
  */
-export async function clearLikedMovies(): Promise<void> {
+export async function clearLikedMovies(username: string): Promise<void> {
   try {
-    await AsyncStorage.removeItem(STORAGE_KEY);
+    const key = getLikesKey(username);
+    await AsyncStorage.removeItem(key);
+    console.log("Cleared liked movies for key:", key);
   } catch (error) {
-    console.error("❌ Error while clearing liked movies:", error);
+    console.error("Error while clearing liked movies:", error);
   }
 }

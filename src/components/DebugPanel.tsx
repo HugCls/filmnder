@@ -12,21 +12,21 @@ interface DebugPanelProps {
 const DebugPanel: React.FC<DebugPanelProps> = ({ visible = true }) => {
   if (!visible) return null;
   const router = useRouter();
-
+  const pseudo = "testUser"; // Use a consistent pseudo for testing
 
   return (
     <View style={styles.container}>
       <TouchableOpacity
-  onPress={() => router.push("/matches")}
-  style={[styles.button, { backgroundColor: "#673AB7" }]}
->
-  <Text style={styles.text}>Go to MatchesScreen</Text>
-</TouchableOpacity>
+        onPress={() => router.push("/matches")}
+        style={[styles.button, { backgroundColor: "#673AB7" }]}
+      >
+        <Text style={styles.text}>Go to MatchesScreen</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.button}
         onPress={async () => {
-          const liked = await getLikedMovies();
+          const liked = await getLikedMovies(pseudo);
           console.log("🎯 Liked movies:", liked);
         }}
       >
@@ -36,17 +36,19 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ visible = true }) => {
       <TouchableOpacity
         style={[styles.button, { backgroundColor: "#555" }]}
         onPress={async () => {
-          await clearLikedMovies();
+          await clearLikedMovies(pseudo);
           console.log("🧹 Liked movies cleared");
         }}
       >
         <Text style={styles.text}>Clear liked movies</Text>
       </TouchableOpacity>
+
       <TouchableOpacity
         onPress={async () => {
-          const userLikes = await getLikedMovies();
+          const userLikes = await getLikedMovies(pseudo);
           const matches = getMatchingMovies(userLikes, otherUserLikes);
           console.log("💘 Matching movies:", matches);
+          console.log("Current user:", pseudo);
         }}
         style={[styles.button, { backgroundColor: "#4CAF50" }]}
       >

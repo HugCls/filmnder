@@ -86,8 +86,8 @@ export default function HomeScreen() {
     const likedMovie = movies[currentIndex];
     console.log("Liked movie:", likedMovie?.title);
 
-    if (likedMovie?.id) {
-      await addLikedMovie(likedMovie.id);
+    if (likedMovie?.id && currentUser) {
+      await addLikedMovie(likedMovie.id, currentUser);
     }
 
     setCurrentIndex((prev) => prev + 1);
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     position: "relative",
-    backgroundColor: "#2C2C2E", // Using a stylish dark gray background
+    backgroundColor: "#2C2C2E", 
   },
   loadingContainer: {
     flex: 1,

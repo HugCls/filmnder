@@ -17,7 +17,7 @@ export default function MatchesScreen() {
 
   useEffect(() => {
     async function loadMatches() {
-      const userLikes = await getLikedMovies();
+      const userLikes = await getLikedMovies("testUser");
       const matches = getMatchingMovies(userLikes, otherUserLikes);
 
       const detailedMatches: Movie[] = [];
